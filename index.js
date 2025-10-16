@@ -7,6 +7,11 @@ const chromium = require('@sparticuz/chromium');
 const app = express();
 app.use(express.json()); // Pour parser les requêtes JSON
 
+
+app.get('/health', (req, res) => {
+  res.send('Serveur en cours d\'exécution. Utilisez le endpoint /generateAvis pour générer une image.');
+});
+
 app.post('/generateAvis', async (req, res) => {
   try {
     const { prenom, nom, age, lieu, description, contact, photo_url } = req.body;
