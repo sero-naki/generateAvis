@@ -1,5 +1,5 @@
 # Image de base
-FROM node:18-bullseye-slim
+FROM node:22-slim
 
 # Variables d'environnement
 ENV PORT=8080
