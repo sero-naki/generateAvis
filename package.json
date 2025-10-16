@@ -1,0 +1,12 @@
+{
+  "name": "avis-recherche-function",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    // peut être vide ou avec un build si besoin
+  },
+  "dependencies": {
+    "puppeteer-core": "^20.0.0",
+    "@sparticuz/chromium": "^138.0.2"
+  }
+}
