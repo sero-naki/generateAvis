@@ -45,6 +45,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copier package.json et package-lock.json (si présent) et installer les dépendances
 COPY package*.json ./
 
+# Installer les dépendances Node (prefère npm ci si package-lock présent, sinon fallback to npm install)
+RUN npm ci --only=production || npm install --only=production
+
+
 # Copier le code de l'application
 COPY . .
 
