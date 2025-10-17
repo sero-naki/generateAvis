@@ -29,12 +29,25 @@ app.post('/generateAvis', async (req, res) => {
       .replace('{{contact}}', contact || '')
       .replace('{{photo_url}}', photo_url || '');
 
-    // Lancement du navigateur
+    // Lancement du navigateur — essaye d'abord @sparticuz/chromium puis fallback vers le binaire système
+    let chromiumPath = null;
+    try {
+      // Si @sparticuz/chromium a téléchargé un binaire, récupère son chemin
+      chromiumPath = await chromium.executablePath();
+    } catch (e) {
+      // fallback : chemins usuels pour chromium/chromium-browser
+      if (fs.existsSync('/usr/bin/chromium')) chromiumPath = '/usr/bin/chromium';
+      else if (fs.existsSync('/usr/bin/chromium-browser')) chromiumPath = '/usr/bin/chromium-browser';
+      else chromiumPath = null;
+    }
+    console.log('Using Chromium executable at:', chromiumPath || 'default puppeteer resolution');
+
+    const launchArgs = ['--no-sandbox', '--disable-setuid-sandbox', ...(chromium.args || [])];
     const browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless
+      args: launchArgs,
+      defaultViewport: chromium.defaultViewport || null,
+      executablePath: chromiumPath || undefined,
+      headless: true
     });
 
     const page = await browser.newPage();

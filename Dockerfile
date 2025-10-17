@@ -2,10 +2,11 @@
 FROM node:22-slim
 
 ENV PORT=8080
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 WORKDIR /usr/src/app
 
-# Installer dépendances système nécessaires pour Chromium / Puppeteer
+# Installer dépendances système nécessaires pour Chromium / Puppeteer et Chromium via apt
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     fonts-liberation \
@@ -38,20 +39,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxss1 \
     wget \
     unzip \
+  chromium \
   && rm -rf /var/lib/apt/lists/*
 
 # Copier package.json et package-lock.json et installer les dépendances
+
 COPY package*.json ./
 
-# Important: allow postinstall scripts to run so @sparticuz/chromium or puppeteer peuvent télécharger Chromium
-# --unsafe-perm permet aux scripts de postinstall de s'exécuter correctement dans le container
+# Créer le répertoire de cache Puppeteer et donner la main à l'utilisateur node
+RUN mkdir -p /home/node/.cache/puppeteer \
+ && chown -R node:node /home/node/.cache
+
+# Installer les dépendances Node (postinstall ne téléchargera pas Chromium grâce à PUPPETEER_SKIP_CHROMIUM_DOWNLOAD)
 RUN npm ci --only=production --unsafe-perm=true || npm install --only=production --unsafe-perm=true
 
 # Copier le code de l'application
 COPY . .
 
 # Donner la propriété au user node pour exécuter sans root et éviter problèmes de cache
-RUN chown -R node:node /usr/src/app
+RUN chown -R node:node /usr/src/app /home/node/.cache
 
 # Exposer le port et lancer en tant qu'utilisateur non-root
 EXPOSE 8080
