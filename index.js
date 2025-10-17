@@ -53,10 +53,21 @@ app.post('/generateAvis', async (req, res) => {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
 
-    const screenshot = await page.screenshot({ type: 'jpeg' });
+    // Generate PNG (better compatibility) and close browser
+    const screenshot = await page.screenshot({ type: 'png' });
     await browser.close();
 
-    res.set('Content-Type', 'image/jpeg');
+    // Diagnostic: log magic bytes and size to help debug format issues
+    try {
+      const magic = screenshot.slice(0, 8).toString('hex');
+      console.log('Screenshot size:', screenshot.length, 'bytes, magic:', magic);
+    } catch (e) {
+      console.warn('Could not log screenshot diagnostics:', e.message);
+    }
+
+    // Send as PNG and suggest filename
+    res.set('Content-Type', 'image/png');
+    res.set('Content-Disposition', 'attachment; filename="avis.png"');
     res.send(screenshot);
 
   } catch (err) {
