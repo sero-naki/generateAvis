@@ -5,27 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Avis de Recherche</title>
   <style>
-    /* Styles ici */
+    /* Poster-style affiche: image on top, centered info below */
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap');
+  html,body{height:100%;margin:0;font-family:Roboto, Arial, sans-serif;background:#fff}
+  /* Target poster aspect: we'll render at 1200x1800 by default */
+  .poster{width:1200px;height:1800px;margin:0 auto;border:12px solid #111;background:#fff;box-sizing:border-box;display:flex;flex-direction:column}
+  /* hero = 60% height */
+  .hero{width:100%;height:60%;overflow:hidden;display:block}
+    .hero img{width:100%;height:100%;object-fit:cover;display:block}
+  .body{padding:36px 80px;text-align:left;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(180deg,#f7fbff, #eef6ff);height:40%}
+  .headline{font-family:Montserrat, sans-serif;font-size:56px;letter-spacing:2px;margin:0 0 8px;color:#111;text-align:center}
+  .subhead{color:#c22;font-weight:800;font-size:32px;margin:0 0 18px;text-align:center}
+  .details{width:100%;max-width:960px;margin:0 auto;color:#111}
+  .info-line{display:flex;justify-content:flex-start;gap:12px;align-items:baseline;padding:6px 0;font-size:22px}
+  .info-line .label{font-weight:700;color:#222;width:160px}
+  .info-line .value{font-weight:600;color:#111}
+  .desc{margin-top:12px;font-size:20px;color:#333;line-height:1.4}
+  .contact{margin-top:18px;font-weight:800;font-size:22px;color:#0b63c9;text-align:center}
+    .placeholder{background:#eee;display:flex;align-items:center;justify-content:center;color:#888;font-weight:700}
+    @media(max-width:520px){.headline{font-size:32px}.poster{border-width:6px}.hero{height:300px}}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Avis de Recherche</h1>
-    <img class="photo" src="{{photo_url}}" alt="Photo de {{prenom}} {{nom}}" />
-    <div class="info">
-      <label>Nom :</label><p>{{prenom}} {{nom}}</p>
+  <div class="poster">
+    <div class="hero">
+      <img src="{{photo_url}}" alt="Photo de {{prenom}} {{nom}}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'1200\' height=\'480\'><rect width=\'100%\' height=\'100%\' fill=\'%23eee\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23888\' font-family=\'Arial\' font-size=\'36\'>Photo indisponible</text></svg>'" />
     </div>
-    <div class="info">
-      <label>Âge :</label><p>{{age}}</p>
-    </div>
-    <div class="info">
-      <label>Lieu :</label><p>{{lieu}}</p>
-    </div>
-    <div class="info">
-      <label>Description :</label><p>{{description}}</p>
-    </div>
-    <div class="contact">
-      <p><strong>Contact :</strong> {{contact}}</p>
+    <div class="body">
+      <div class="headline">AVIS DE RECHERCHE</div>
+      <div class="subhead">{{prenom}} {{nom}}</div>
+      <div class="details">
+        <div class="row">
+          <div><div class="label">Âge</div><div class="value">{{age}}</div></div>
+          <div><div class="label">Lieu</div><div class="value">{{lieu}}</div></div>
+        </div>
+        <div class="desc">{{description}}</div>
+        <div class="contact">Contact: {{contact}}</div>
+      </div>
     </div>
   </div>
 </body>
