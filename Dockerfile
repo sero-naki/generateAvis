@@ -1,9 +1,7 @@
 # Image de base
 FROM node:22-slim
 
-# Variables d'environnement
 ENV PORT=8080
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 WORKDIR /usr/src/app
 
@@ -42,17 +40,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
   && rm -rf /var/lib/apt/lists/*
 
-# Copier package.json et package-lock.json (si présent) et installer les dépendances
+# Copier package.json et package-lock.json et installer les dépendances
 COPY package*.json ./
 
-# Installer les dépendances Node (prefère npm ci si package-lock présent, sinon fallback to npm install)
-RUN npm ci --only=production || npm install --only=production
-
+# Important: allow postinstall scripts to run so @sparticuz/chromium or puppeteer peuvent télécharger Chromium
+# --unsafe-perm permet aux scripts de postinstall de s'exécuter correctement dans le container
+RUN npm ci --only=production --unsafe-perm=true || npm install --only=production --unsafe-perm=true
 
 # Copier le code de l'application
 COPY . .
 
-# Donner la propriété au user node pour exécuter sans root
+# Donner la propriété au user node pour exécuter sans root et éviter problèmes de cache
 RUN chown -R node:node /usr/src/app
 
 # Exposer le port et lancer en tant qu'utilisateur non-root
