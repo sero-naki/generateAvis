@@ -89,7 +89,7 @@ app.get('/health', (req, res) => {
 
 app.post('/generateAvis', async (req, res) => {
   try {
-    const { prenom, nom, age, lieu, description, contact, photo_url } = req.body;
+    const { prenom, nom, age, lieu, time, date, description, contact1, contact2, photo_url } = req.body;
 
     // Log the incoming body to help debug missing fields
     console.log('generateAvis body:', req.body);
@@ -98,6 +98,60 @@ app.post('/generateAvis', async (req, res) => {
 
     const templatePath = path.join(__dirname, 'templates.html');
     let html = fs.readFileSync(templatePath, 'utf8');
+
+    // Helper to embed local files referenced by the template (any url(...) or <img src=> that
+    // points to a local path). This handles the various asset paths you might have used.
+    function embedLocalImagePath(filePath) {
+      if (!filePath) return null;
+      // ignore absolute URLs and data URLs
+      if (/^(data:|https?:|http:)/i.test(filePath)) return null;
+      const candidates = [
+        filePath,
+        './' + filePath,
+        path.join('images', filePath),
+        path.join('./images', filePath),
+        path.join('assets', filePath),
+      ];
+      for (const c of candidates) {
+        const abs = path.join(__dirname, c);
+        if (fs.existsSync(abs)) {
+          try {
+            const buf = fs.readFileSync(abs);
+            const ext = path.extname(abs).toLowerCase().replace('.', '');
+            // support images and font mime types
+            let mime = 'application/octet-stream';
+            if (ext === 'svg') mime = 'image/svg+xml';
+            else if (ext === 'jpg' || ext === 'jpeg') mime = 'image/jpeg';
+            else if (ext === 'png') mime = 'image/png';
+            else if (ext === 'webp') mime = 'image/webp';
+            else if (ext === 'woff2') mime = 'font/woff2';
+            else if (ext === 'woff') mime = 'font/woff';
+            else if (ext === 'ttf') mime = 'font/ttf';
+            else if (ext === 'otf') mime = 'font/otf';
+            return 'data:' + mime + ';base64,' + buf.toString('base64');
+          } catch (e) {
+            console.warn('embedLocalImagePath failed for', abs, e && e.message);
+            return null;
+          }
+        }
+      }
+      return null;
+    }
+
+    // Replace CSS url(...) references with embedded data URLs when possible
+    html = html.replace(/url\((['"]?)([^)'"]+)\1\)/g, (m, _q, p) => {
+      const embedded = embedLocalImagePath(p);
+      if (embedded) return `url("${embedded}")`;
+      return m;
+    });
+
+    // Replace <img src="..."> local images (but do not touch placeholders like {{photo_url}})
+    html = html.replace(/<img([^>]+)src=(['"])([^'"<>]+)\2([^>]*)>/gi, (m, before, q, src, after) => {
+      if (/\{\{\s*photo_url\s*\}\}/.test(src)) return m; // leave template photo placeholder
+      const embedded = embedLocalImagePath(src);
+      if (embedded) return `<img${before}src="${embedded}"${after}>`;
+      return m;
+    });
 
     // Try to fetch the photo (or extract it from a page) and embed it as data URL to avoid external loading issues
     let embeddedPhoto = null;
@@ -110,13 +164,16 @@ app.post('/generateAvis', async (req, res) => {
     const photoValue = embeddedPhoto || photo_url || '';
 
     // Robust replacements: allow spaces inside braces and multiple occurrences
-    html = html
+     html = html
       .replace(/{{\s*prenom\s*}}/g, prenom || '')
       .replace(/{{\s*nom\s*}}/g, nom || '')
       .replace(/{{\s*age\s*}}/g, age || '')
       .replace(/{{\s*lieu\s*}}/g, lieu || '')
+      .replace(/{{\s*date\s*}}/g, date || '')
+      .replace(/{{\s*time\s*}}/g, time || '')
       .replace(/{{\s*description\s*}}/g, description || '')
-      .replace(/{{\s*contact\s*}}/g, contact || '')
+      .replace(/{{\s*contact1\s*}}/g, contact1 || '')
+      .replace(/{{\s*contact2\s*}}/g, contact2 || '')
       .replace(/{{\s*photo_url\s*}}/g, photoValue);
 
     // Lancement du navigateur — essaye d'abord @sparticuz/chromium puis fallback vers le binaire système
@@ -147,9 +204,21 @@ app.post('/generateAvis', async (req, res) => {
   // wait a tick for fonts to load/render
   await page.evaluateHandle('document.fonts.ready');
 
-  // Generate PNG of the poster area
-  const screenshot = await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width: 1200, height: 1800 } });
-    await browser.close();
+  // Generate PNG of the poster area. Prefer capturing the `.poster` element so we don't
+  // accidentally clip content if the page size/layout shifts. Fallback to full-viewport clip.
+  let screenshot = null;
+  try {
+    const posterHandle = await page.$('.poster');
+    if (posterHandle) {
+      screenshot = await posterHandle.screenshot({ type: 'png' });
+    } else {
+      screenshot = await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width: 1200, height: 1800 } });
+    }
+  } catch (e) {
+    console.warn('Screenshot via element failed, falling back to full page:', e && e.message);
+    screenshot = await page.screenshot({ type: 'png' });
+  }
+  await browser.close();
 
     // Diagnostic: log magic bytes and size to help debug format issues
     try {
