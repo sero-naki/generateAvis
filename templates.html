@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Avis de recherche Fitè!</title>
     <style>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         /* Fonts: use Work Sans files from /font if present */
         @font-face {
             font-family: 'WorkSansVar';
@@ -75,16 +76,16 @@
             background: #FFFFFF;
             height: 45%;
             padding: 10px 20px 0 20px;
-            font-size: 26px;
+            font-size: 30px;
         }
         .name {
-            font-size: 40px;  
+            font-size: 45px;  
             color: #000ECE;
             padding: 0; 
             margin: 10px;
         }
         .given {
-            font-size: 32px;
+            font-size: 37px;
             color: #000ECE;
             font-weight: 600;
         }
@@ -102,7 +103,7 @@
             height: 40%;
             padding: 20px;
             color: #FFFFFF;
-            font-size: 26px;
+            font-size: 30px;
             font-weight: bold;
         }
         .date div {
@@ -119,7 +120,7 @@
             margin-bottom: 30px;
             text-align: center;
             padding: 20px;
-            font-size: 24px;
+            font-size: 26px;
         }
         .cta {
             border-radius: 12px;
@@ -185,8 +186,8 @@
                         <div class="date-top">Disparue depuis le</div>
                         <div class="date-big">{{date}}</div>
                         <div class="date-meta">
-                            <div class="date-line"><span class="icon"></span> {{time}}</div>
-                            <div class="date-line"><span class="icon"></span> {{lieu}}</div>
+                            <div class="date-line"><span class="icon"><i class="fa-solid fa-clock"></i></span> {{time}}</div>
+                            <div class="date-line"><span class="icon"><i class="fa-solid fa-location-dot"></i></span> {{lieu}}</div>
                         </div>
                     </aside>
                 </div>
